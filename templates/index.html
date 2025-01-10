@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Video Transcription</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload a Video File</h1>
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" accept="video/*">
+            <button type="submit" id="upload-button">Upload</button>
+        </form>
+        <div id="loading" style="display: none;">
+            <p id="status-text">Preparing...</p>
+            <div class="loader"></div>
+        </div>
+        <div id="output" style="display: none;">
+            <h2>Transcription</h2>
+            <pre id="transcription"></pre>
+            <h2>Topics</h2>
+            <pre id="topics"></pre>
+        </div>
+    </div>
+    <script>
+        const form = document.getElementById('upload-form');
+        const transcriptionOutput = document.getElementById('transcription');
+        const topicsOutput = document.getElementById('topics');
+        const loadingDiv = document.getElementById('loading');
+        const statusText = document.getElementById('status-text');
+        const outputDiv = document.getElementById('output');
+        const uploadButton = document.getElementById('upload-button');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingDiv.style.display = 'block';
+            outputDiv.style.display = 'none';
+            statusText.textContent = 'Transcribing...';
+
+            const formData = new FormData(form);
+
+            uploadButton.classList.add('button-animate');
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    transcriptionOutput.textContent = data.transcription;
+                    statusText.textContent = 'Determining Topics...';
+                    topicsOutput.textContent = data.topics;
+                    outputDiv.style.display = 'block';
+                }
+                else {
+                    alert('Error uploading or processing file.');
+                }
+            } catch (error) {
+                alert('An unexpected error occurred.');
+            } finally {
+                loadingDiv.style.display = 'none';
+                uploadButton.classList.remove('button-animate');
+            }
+        });
+    </script>
+</body>
+</html>
